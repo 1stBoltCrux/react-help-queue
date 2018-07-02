@@ -1,4 +1,5 @@
 import React from 'react';
+import Moment from 'moment';
 import Header from './Header';
 import TicketList from './TicketList';
 import NewTicketControl from './NewTicketControl';
@@ -14,8 +15,34 @@ export default class App extends React.Component{
 
     this.handleAddingNewTicketToList = this.handleAddingNewTicketToList.bind(this);
 }
+componentDidMount() {
+  console.log('componentDidMount');
+    this.waitTimeUpdateTimer = setInterval(()=>
+    this.updateTicketElapsedWaitTime(), 60000
+  );
+}
+
+componentWillUnmount(){
+  console.log('componentWillUnmount');
+  clearInterval(this.waitTimeUpdateTimer);
+}
+
+
+componentWillMount(){
+  console.log('componentWillMount');
+  clearInterval(this.waitTimeUpdateTimer);
+}
+updateTicketElapsedWaitTime(){
+  console.log('check');
+  let newMasterTicketList = this.state.masterTicketList.slice();
+  newMasterTicketList.forEach((ticket) =>
+ticket.formattedWaitTime = (ticket.timeOpen).fromNow(true)
+);
+this.setState({masterTicketList: newMasterTicketList});
+}
     handleAddingNewTicketToList(newTicket){
       const newMasterTicketList = this.state.masterTicketList.slice();
+      newTicket.formattedWaitTime = (newTicket.timeOpen).fromNow(true);
       newMasterTicketList.push(newTicket);
       this.setState({masterTicketList: newMasterTicketList});
     };
