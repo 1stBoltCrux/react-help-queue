@@ -5,15 +5,24 @@ import TicketList from './TicketList';
 import NewTicketControl from './NewTicketControl';
 import { Switch, Route } from 'react-router-dom';
 import Error404 from './Error404';
+import Admin from './Admin'
+import { v4 } from 'uuid';
 
 export default class App extends React.Component{
   constructor(props) {
     super(props);
     this.state = {
-      masterTicketList: []
+      masterTicketList: {},
+      selectedTicket: null
     };
 
     this.handleAddingNewTicketToList = this.handleAddingNewTicketToList.bind(this);
+    this.handleChangingSelectedTicket = this.handleChangingSelectedTicket.bind(this);
+}
+
+handleChangingSelectedTicket(ticketId){
+  console.log(ticketId);
+  this.setState({selectedTicket: ticketId});
 }
 componentDidMount() {
   console.log('componentDidMount');
@@ -32,18 +41,20 @@ componentWillMount(){
   console.log('componentWillMount');
   clearInterval(this.waitTimeUpdateTimer);
 }
-updateTicketElapsedWaitTime(){
-  console.log('check');
-  let newMasterTicketList = this.state.masterTicketList.slice();
-  newMasterTicketList.forEach((ticket) =>
-ticket.formattedWaitTime = (ticket.timeOpen).fromNow(true)
-);
-this.setState({masterTicketList: newMasterTicketList});
+updateTicketElapsedWaitTime() {
+  var newMasterTicketList = Object.assign({}, this.state.masterTicketList);
+  Object.keys(newMasterTicketList).forEach(ticketId => {
+    newMasterTicketList[ticketId].formattedWaitTime = (newMasterTicketList[ticketId].timeOpen).fromNow(true);
+  });
+  this.setState({masterTicketList: newMasterTicketList});
 }
+
     handleAddingNewTicketToList(newTicket){
-      const newMasterTicketList = this.state.masterTicketList.slice();
-      newTicket.formattedWaitTime = (newTicket.timeOpen).fromNow(true);
-      newMasterTicketList.push(newTicket);
+      const newTicketId = v4()
+      const newMasterTicketList = Object.assign({}, this.state.masterTicketList, {[newTicket.id]: newTicket
+      });
+      newMasterTicketList[newTicket.id].formattedWaitTime = (newTicket.timeOpen).fromNow(true);
+      newMasterTicketList[newTicket.id].timeOpen.fromNow(true);
       this.setState({masterTicketList: newMasterTicketList});
     };
 
@@ -52,6 +63,8 @@ this.setState({masterTicketList: newMasterTicketList});
       <div>
         <Header/>
         <Switch>
+          <Route path='/admin' render={(props)=> <Admin ticketList={this.state.masterTicketList} currentRouterPath={props.location.pathname} onTicketSelection={this.handleChangingSelectedTicket}
+          selectedTicket={this.state.selectedTicket}/>}/>
           <Route exact path='/' render={()=><TicketList ticketList={this.state.masterTicketList} />} />
           <Route path='/newticket' render={()=><NewTicketControl onNewTicketCreation={this.handleAddingNewTicketToList}/>}  />
           <Route component={Error404} />
